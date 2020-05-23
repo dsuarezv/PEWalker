@@ -235,7 +235,7 @@ namespace AuthentiPatcher
             var len = ReadDWORD("WIN_CERTIFICATE", "Length");
             ReadWORD("WIN_CERTIFICATE", "Revision", f => f.Comment = GetCertRevision((ushort)f.ULongValue));
             ReadWORD("WIN_CERTIFICATE", "Certificate type", f => f.Comment = GetCertType((ushort)f.ULongValue));
-            ReadBytes("WIN_CERTIFICATE", "Certificates", len - 8);
+            ReadBytes("WIN_CERTIFICATE", "Certificates", len - 8, f => f.Comment = "Size 0x" + f.ByteValue.Length.ToString("X"));
         }
 
         // __ Reading utils ___________________________________________________

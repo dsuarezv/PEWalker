@@ -223,4 +223,4 @@ Here is a list of the full report generated for now by the tool:
     1E1E00 WIN_CERTIFICATE     DWORD Length                                  6660 
     1E1E04 WIN_CERTIFICATE     WORD  Revision                                 200   WIN_CERT_REVISION_2_0
     1E1E06 WIN_CERTIFICATE     WORD  Certificate type                           2   WIN_CERT_TYPE_PKCS_SIGNED_DATA
-    1E1E08 WIN_CERTIFICATE     BYTES Certificates                               0 
+    1E1E08 WIN_CERTIFICATE     BYTES Certificates                               0   Size 0x6658
