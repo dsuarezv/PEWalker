@@ -157,7 +157,8 @@ namespace AuthentiPatcher
 
         static void PrintColoredLine(string msg, string color)
         {
-            Console.WriteLine(msg.Pastel(color));
+            msg = IsOutputRedirected ? msg : msg.Pastel(color);
+            Console.WriteLine(msg);
         }
 
         static string Right(string s, int len)
@@ -169,5 +170,7 @@ namespace AuthentiPatcher
         {
             return s.PadRight(len).Substring(0, len);
         }
+
+        private static bool IsOutputRedirected = Console.IsOutputRedirected;
     }
 }
