@@ -37,7 +37,7 @@ There are some requirements for this to work:
 
 The code is written in C# for dotnet core 3.1, but will probably work in previous versions (I haven't tested). Install the dotnetcore SDK in your platform and you are ready to roll. 
 
-For console colors, it uses the great C# [Pastel library](https://github.com/silkfire/Pastel).
+For console colors, it uses the great C# [Pastel library](https://github.com/silkfire/Pastel). Color ANSI codes will not be generated when the output is redirected to a file. 
 
 ## API
 
@@ -56,7 +56,7 @@ The interesting part is the PeParser class. Provided with a file, it will parse 
 
 Here is a list of the full report generated for now by the tool: 
 
-  [i] File: c:\Windows\System32\calc.exe
+    [i] File: c:\Windows\System32\calc.exe
   
     OFFSET GROUP               TYPE  NAME                               VALUE(hex COMMENT
          0 DOS                 WORD  Signature                               5A4D 
