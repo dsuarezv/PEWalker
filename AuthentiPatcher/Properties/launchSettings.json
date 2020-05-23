@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AuthentiPatcher": {
+      "commandName": "Project",
+      "commandLineArgs": "c:\\windows\\system32\\calc.exe"
+    }
+  }
+}
