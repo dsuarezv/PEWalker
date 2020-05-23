@@ -24,7 +24,7 @@ This will print all the fields it knows about in the console:
 
 ### Patching files
 
-It can also append a payload at the end of the certificates area, if invoked with some more arguments. The signature of the file will still be valid after this. 
+The tool can also append a payload at the end of the certificates area, if invoked with some more arguments. The signature of the file should still be valid after this. 
 
     authentipatcher <inputfile> <payloadfile> <outputfile>
 
@@ -32,6 +32,11 @@ There are some requirements for this to work:
 
 * The payload size must be a mutiple of 8. This is required by the PE format. 
 * The target executable should not have debug symbols. This is not normal in signed files, but if there are, they will be overwritten and the signature validation will fail in that case. 
+
+It will modify the size of this section, both the length here and the size of the Certificate data diretory that points here:
+
+![](screenshots/certdata.png)
+
 
 ## Building
 
