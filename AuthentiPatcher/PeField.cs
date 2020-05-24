@@ -8,7 +8,7 @@ namespace AuthentiPatcher
     {
         public FieldType Type;
         public long Offset;
-        public int Size;
+        public uint Size;
         public string Name;
         public string Group;
         public string Comment;

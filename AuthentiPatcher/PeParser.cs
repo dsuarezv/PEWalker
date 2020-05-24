@@ -6,14 +6,15 @@ using System.Text;
 
 namespace AuthentiPatcher
 {
-    public class PeParser: IDisposable
+    public class PeParser : IDisposable
     {
         public BinaryReader Reader { get; private set; }
         public List<PeField> Fields { get; } = new List<PeField>();
         public int NumberOfSections { get; private set; }
+        public IList<PeSection> Sections { get; private set; } = new List<PeSection>();
 
-        public int CertificateStart;
-        public int CertificateSize;
+        public uint CertificateStart;
+        public uint CertificateSize;
 
         public PeParser(string fileName)
         {
@@ -44,7 +45,7 @@ namespace AuthentiPatcher
             }
 
             ParseSections();
-            
+
             ParseCertificate();
         }
 
@@ -102,7 +103,20 @@ namespace AuthentiPatcher
             return (long)result.ULongValue;
         }
 
-        private int ParseDosHeader()
+        public byte[] GetSectionContent(string sectionName)
+        {
+            var section = Sections.Where(s => s.Name == sectionName).FirstOrDefault();
+            if (section == null) throw new Exception($"Section {sectionName} not found");
+
+            SeekAbsolute(section.RawDataPointer);
+            return Reader.ReadBytes((int)section.RawDataSize);
+        }
+
+
+        // __ Impl ____________________________________________________________
+
+
+        private uint ParseDosHeader()
         {
             ReadWORD("DOS", "Signature");
             ReadBytes("DOS", "BODY NOT Parsed", 0x3A);
@@ -136,7 +150,7 @@ namespace AuthentiPatcher
             ReadDWORD("COFF common fields", "Address of entry point (RVA)");
             ReadDWORD("COFF common fields", "Base of code (RVA)");
 
-            int numRvas;
+            uint numRvas;
 
             if (magic == 0x10b)
             {
@@ -218,7 +232,7 @@ namespace AuthentiPatcher
             }
         }
 
-        private void ReadDataDirectory(string name, Action<int, int> callback = null)
+        private void ReadDataDirectory(string name, Action<uint, uint> callback = null)
         {
             var start = ReadDWORD("Data directories", name);
             var size = ReadDWORD("Data directories", "Size of " + name);
@@ -237,18 +251,22 @@ namespace AuthentiPatcher
 
         private void ParseSection()
         {
+            var s = new PeSection();
+
             string group = "";
 
-            ReadBytes("", "Name", 8, v => { var g = Encoding.UTF8.GetString(v.ByteValue);  group = "Section " + g; v.Group = group; v.Comment = g; });
-            ReadDWORD(group, "Virtual size");
-            ReadDWORD(group, "Virtual address");
-            ReadDWORD(group, "Size of raw data");
-            ReadDWORD(group, "Pointer to raw data");
-            ReadDWORD(group, "Pointer to relocations");
-            ReadDWORD(group, "Pointer to line numbers");
-            ReadWORD(group, "Number of relocations");
-            ReadWORD(group, "Number of line elements");
-            ReadDWORD(group, "Characteristics");
+            ReadBytes("", "Name", 8, v => { var g = Encoding.UTF8.GetString(v.ByteValue);  group = "Section " + g; v.Group = group; v.Comment = g; s.Name = g; });
+            s.VirtualSize = ReadDWORD(group, "Virtual size");
+            s.VirtualAddress = ReadDWORD(group, "Virtual address");
+            s.RawDataSize = ReadDWORD(group, "Size of raw data");
+            s.RawDataPointer = ReadDWORD(group, "Pointer to raw data");
+            s.RelocationPointer = ReadDWORD(group, "Pointer to relocations");
+            s.LineNumbersPointer = ReadDWORD(group, "Pointer to line numbers");
+            s.NumRelocations = ReadWORD(group, "Number of relocations");
+            s.NumLineNumbers = ReadWORD(group, "Number of line elements");
+            s.Characteristics = ReadDWORD(group, "Characteristics");
+
+            Sections.Add(s);
         }
 
         private void ParseCertificate()
@@ -258,6 +276,8 @@ namespace AuthentiPatcher
             SeekAbsolute(CertificateStart);
 
             var len = ReadDWORD("WIN_CERTIFICATE", "Length");
+            if (len == 0) return;
+
             ReadWORD("WIN_CERTIFICATE", "Revision", f => f.Comment = GetCertRevision((ushort)f.ULongValue));
             ReadWORD("WIN_CERTIFICATE", "Certificate type", f => f.Comment = GetCertType((ushort)f.ULongValue));
             ReadBytes("WIN_CERTIFICATE", "Certificates", len - 8, f => f.Comment = "Size 0x" + f.ByteValue.Length.ToString("X"));
@@ -265,7 +285,7 @@ namespace AuthentiPatcher
 
         // __ Reading utils ___________________________________________________
 
-        private void SeekAbsolute(int offset)
+        private void SeekAbsolute(uint offset)
         {
             Reader.BaseStream.Seek(offset, SeekOrigin.Begin);
         }
@@ -275,7 +295,7 @@ namespace AuthentiPatcher
             Reader.BaseStream.Seek(offsetFromCurrent, SeekOrigin.Current);
         }
 
-        private int ReadDWORD(string group, string name, Action<PeField> callback = null)
+        private uint ReadDWORD(string group, string name, Action<PeField> callback = null)
         {
             var entry = new PeField
             {
@@ -291,7 +311,7 @@ namespace AuthentiPatcher
 
             if (callback != null) callback.Invoke(entry);
 
-            return (int)entry.ULongValue;
+            return (uint)entry.ULongValue;
         }
 
         private int ReadWORD(string group, string name, Action<PeField> callback = null)
@@ -330,7 +350,7 @@ namespace AuthentiPatcher
             return entry.ULongValue;
         }
 
-        private PeField ReadBytes(string group, string name, int numBytes, Action<PeField> callback = null)
+        private PeField ReadBytes(string group, string name, uint numBytes, Action<PeField> callback = null)
         {
             var entry = new PeField
             {
@@ -339,7 +359,7 @@ namespace AuthentiPatcher
                 Name = name,
                 Size = numBytes,
                 Offset = (int)Reader.BaseStream.Position,
-                ByteValue = Reader.ReadBytes(numBytes)
+                ByteValue = Reader.ReadBytes((int)numBytes)
             };
 
             Fields.Add(entry);
