@@ -27,6 +27,8 @@ namespace AuthentiPatcher
             Console.WriteLine(Color("[+] ", "00FF00") + msg);
         }
 
+
+
         public static void Banner()
         {
             Console.WriteLine(Color(@"   _____          __  .__                   __  .__ ", "d16ba5"));

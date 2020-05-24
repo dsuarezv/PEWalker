@@ -12,51 +12,118 @@ namespace AuthentiPatcher
     {
         static void Main(string[] args)
         { 
-            
-        }
-
-
-
-
-        static void Main2(string[] args)
-        {
-            if (args.Length < 1) 
+            if (args.Length == 0)
             {
-                P.Error("Usage: AuthentiPatcher <input file> [payload file] [output file]");
+                P.Warn("Usage: AuthentiPatch <command>");
+                P.Info("  Available commands");
+                P.Info("    print           Prints the PE header data");
+                P.Info("    dump            dumps a part of the file, to file or to hex on output");
+                P.Info("    patch           Patch parts of the executable");
+                P.Info("    addAuthPayload  Adds a payload to the authenticode signature area");
+                Console.WriteLine();
                 return;
             }
 
-            var inputFile = args[0];
-
-            P.Info("File: " + inputFile + '\n');
-
             try
             {
-                using (var parser = new PeParser(inputFile))
+                var command = args[0];
+
+                switch (command.ToLower())
                 {
-                    parser.Parse();
-
-                    if (args.Length == 3)
-                    {
-                        // Add payload
-                        var outputFile = args[2];
-                        var payloadFile = args[1];
-
-                        var payload = File.ReadAllBytes(payloadFile);
-                        PatchAuthenticode(parser, inputFile, outputFile, payload);
-                    }
-                    else
-                    {
-                        // Just print the fields
-                        PrintFields(parser.Fields);
-                    }
+                    case "print": HandlePrint(args); break;
+                    case "dump": HandleDump(args); break;
+                    case "patch": HandlePatch(args); break;
+                    case "addauthpayload": HandleAddPayload(args); break;
+                    default: throw new Exception($"Unknown command {command}");
                 }
             }
             catch (Exception ex)
-            {
+            { 
                 P.Error(ex.Message);
             }
-        }   
+        }
+
+        static void HandlePrint(string[] args)
+        {
+            if (args.Length != 2)
+            {
+                P.Info("print command usage");
+                P.Info("  authentipatch print <filename>");
+                return;
+            }
+
+            var inputFile = args[1];
+
+            using (var parser = new PeParser(inputFile))
+            {
+                parser.Parse();
+                PrintFields(parser.Fields);
+            }
+        }
+
+
+        static void HandleDump(string[] args)
+        {
+            if (args.Length < 4)
+            {
+                P.Info("dump command usage");
+                P.Info("  authentipatch dump <format> <offset> [size]");
+                P.Info("    format can be any of:");
+                P.Info("      raw  raw bytes printed to the output. Recomended redirection.");
+                P.Info("      hex  00 4F 3B AB 00 44 01 0A  00 4F 3B AB 00 44 01 0A");
+                P.Info("      sx   \\x00\\x4F\\x3B\\xAB\\x00\\x44\\x01\\x0A\\x00\\x4F\\x3B\\xAB\\x00\\x44\\x01\\x0A");
+                P.Info("      zx   0x00,0x4F,0x3B,0xAB,0x00,0x44,0x01,0x0A,0x00,0x4F,0x3B,0xAB,0x00,0x44,0x01,0x0A");
+                P.Info("    offset can be any of:");
+                P.Info("      section name: .text  In this case size is not required");
+                P.Info("      decimal value: 34563");
+                P.Info("      hex value: 0x34A63");
+                P.Info("");
+                P.Info("Samples:");
+                P.Info("  authentipatch dump sx .text");
+                P.Info("  authentipatch dump hex .text");
+                P.Info("  authentipatch dump raw 307200 0x345");
+                return;
+            }
+
+            P.Error("Not implemented");
+        }
+
+
+        static void HandlePatch(string[] args)
+        {
+            if (args.Length != 4)
+            {
+                P.Info("patch command usage");
+                P.Info("  authentipatch patch <inputfile> <offset> <content>");
+                return;
+            }
+
+            P.Error("Not implemented");
+        }
+
+
+        static void HandleAddPayload(string[] args)
+        {
+            if (args.Length != 4)
+            {
+                P.Info("addAuthPayload usage:");
+                P.Info("  authentipatch addAuthPayload <inputfile> <payloadFile> <outputFile>");
+                P.Info("    PayloadFile size should be a multipe of 8, because of PE format.");
+                return;
+            }
+
+            var inputFile = args[1];
+            var outputFile = args[3];
+            var payloadFile = args[2];
+
+            using (var parser = new PeParser(inputFile))
+            {
+                parser.Parse();
+
+                var payload = File.ReadAllBytes(payloadFile);
+                PatchAuthenticode(parser, inputFile, outputFile, payload);
+            }
+        }
         
 
         // __ Patching ________________________________________________________

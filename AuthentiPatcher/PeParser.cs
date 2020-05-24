@@ -118,7 +118,9 @@ namespace AuthentiPatcher
 
         private uint ParseDosHeader()
         {
-            ReadWORD("DOS", "Signature");
+            var magic = ReadWORD("DOS", "Signature");
+            if (magic != 0x5A4D) throw new Exception("Not a DOS file");
+
             ReadBytes("DOS", "BODY NOT Parsed", 0x3A);
             var result = ReadDWORD("DOS", "Pointer to PE Header");
 
@@ -127,7 +129,9 @@ namespace AuthentiPatcher
 
         private int ParseCoffHeader()
         {
-            ReadDWORD("COFF Header", "Signature");
+            var signature = ReadDWORD("COFF Header", "Signature");
+            if (signature != 0x4550) throw new Exception("Not a PE file");
+
             ReadWORD("COFF Header", "Machine");
             NumberOfSections = ReadWORD("COFF Header", "Number of sections");
             ReadDWORD("COFF Header", "TimeDateStamp");
@@ -166,7 +170,6 @@ namespace AuthentiPatcher
                 ReadWORD("Windows fields", "Major subsystem version");
                 ReadWORD("Windows fields", "Minor subsystem version");
                 ReadDWORD("Windows fields", "Win32 version value");
-                
 
                 ReadDWORD("Windows fields", "Size of image");
                 ReadDWORD("Windows fields", "Size of headers");
@@ -180,7 +183,7 @@ namespace AuthentiPatcher
                 ReadDWORD("Windows fields", "Loader flags");
                 numRvas = ReadDWORD("Windows fields", "Number of RVA and sizes");
             }
-            else
+            else if (magic == 0x20b)
             {
                 // PE32+
                 ReadQWORD("Windows fields", "ImageBase");
@@ -205,6 +208,9 @@ namespace AuthentiPatcher
                 ReadQWORD("Windows fields", "Size of Heap Commit");
                 ReadDWORD("Windows fields", "Loader flags");
                 numRvas = ReadDWORD("Windows fields", "Number of RVA and sizes");
+            }
+            else {
+                throw new Exception("Unknown PE magic");
             }
 
             if (numRvas >= 16)
@@ -280,7 +286,7 @@ namespace AuthentiPatcher
 
             ReadWORD("WIN_CERTIFICATE", "Revision", f => f.Comment = GetCertRevision((ushort)f.ULongValue));
             ReadWORD("WIN_CERTIFICATE", "Certificate type", f => f.Comment = GetCertType((ushort)f.ULongValue));
-            ReadBytes("WIN_CERTIFICATE", "Certificates", len - 8, f => f.Comment = "Size 0x" + f.ByteValue.Length.ToString("X"));
+            ReadBytes("WIN_CERTIFICATE", "Certificates", len - 8);
         }
 
         // __ Reading utils ___________________________________________________
@@ -359,8 +365,10 @@ namespace AuthentiPatcher
                 Name = name,
                 Size = numBytes,
                 Offset = (int)Reader.BaseStream.Position,
-                ByteValue = Reader.ReadBytes((int)numBytes)
+                ByteValue = Reader.ReadBytes((int)numBytes),
             };
+
+            entry.Comment = "Size 0x" + entry.ByteValue.Length.ToString("X");
 
             Fields.Add(entry);
 
