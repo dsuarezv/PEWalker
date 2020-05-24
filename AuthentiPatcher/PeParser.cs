@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text;
 
 namespace AuthentiPatcher
 {
@@ -69,12 +68,38 @@ namespace AuthentiPatcher
             });
         }
 
-        public ulong FindValue(string group, string name)
+        public long FindOffset(string group, string name)
         {
             var result = Find(group, name).FirstOrDefault();
-            if (result == null) return 0;
+            if (result == null) return -1;
 
-            return result.ULongValue;
+            return result.Offset;
+        }
+
+
+        public byte[] FindBytesValue(string group, string name)
+        {
+            var result = Find(group, name).FirstOrDefault();
+            if (result == null) return null;
+
+            return result.ByteValue;
+        }
+
+
+        public int FindIntValue(string group, string name)
+        {
+            var result = Find(group, name).FirstOrDefault();
+            if (result == null) return -1;
+
+            return (int)result.ULongValue;
+        }
+
+        public long FindLongValue(string group, string name)
+        {
+            var result = Find(group, name).FirstOrDefault();
+            if (result == null) return -1;
+
+            return (long)result.ULongValue;
         }
 
         private int ParseDosHeader()

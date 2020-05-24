@@ -7,7 +7,7 @@ namespace AuthentiPatcher
     public class PeField
     {
         public FieldType Type;
-        public int Offset;
+        public long Offset;
         public int Size;
         public string Name;
         public string Group;

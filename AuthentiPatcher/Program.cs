@@ -11,6 +11,14 @@ namespace AuthentiPatcher
     class Program
     {
         static void Main(string[] args)
+        { 
+            
+        }
+
+
+
+
+        static void Main2(string[] args)
         {
             if (args.Length < 1) 
             {
@@ -98,7 +106,7 @@ namespace AuthentiPatcher
             P.Success($"Patched successfully. {payload.Length} of payload added at the end the file.");
         }
 
-        static void Patch(Stream w, byte[] data, int offset)
+        static void Patch(Stream w, byte[] data, long offset)
         {
             P.Info($"Patching {data.Length} bytes at offset {offset}");
             w.Seek(offset, SeekOrigin.Begin);
