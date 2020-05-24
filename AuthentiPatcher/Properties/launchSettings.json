@@ -2,7 +2,7 @@
   "profiles": {
     "AuthentiPatcher": {
       "commandName": "Project",
-      "commandLineArgs": "print c:\\windows\\system32\\calc.exe"
+      "commandLineArgs": "dump sx c:\\windows\\system32\\calc.exe .text"
     }
   }
 }

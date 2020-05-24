@@ -103,9 +103,14 @@ namespace AuthentiPatcher
             return (long)result.ULongValue;
         }
 
+        public PeSection FindSection(string sectionName)
+        {
+            return Sections.Where(s => s.Name == sectionName).FirstOrDefault();
+        }
+
         public byte[] GetSectionContent(string sectionName)
         {
-            var section = Sections.Where(s => s.Name == sectionName).FirstOrDefault();
+            var section = FindSection(sectionName);
             if (section == null) throw new Exception($"Section {sectionName} not found");
 
             SeekAbsolute(section.RawDataPointer);
@@ -261,7 +266,7 @@ namespace AuthentiPatcher
 
             string group = "";
 
-            ReadBytes("", "Name", 8, v => { var g = Encoding.UTF8.GetString(v.ByteValue);  group = "Section " + g; v.Group = group; v.Comment = g; s.Name = g; });
+            ReadBytes("", "Name", 8, v => { var g = ParseName(v.ByteValue);  group = "Section " + g; v.Group = group; v.Comment = g; s.Name = g; });
             s.VirtualSize = ReadDWORD(group, "Virtual size");
             s.VirtualAddress = ReadDWORD(group, "Virtual address");
             s.RawDataSize = ReadDWORD(group, "Size of raw data");
@@ -273,6 +278,15 @@ namespace AuthentiPatcher
             s.Characteristics = ReadDWORD(group, "Characteristics");
 
             Sections.Add(s);
+        }
+
+        private string ParseName(byte[] name)
+        {
+            // Strip padding zeros
+            var clearName = name.TakeWhile(c => c != 0).ToArray();
+            var result = Encoding.UTF8.GetString(clearName);
+
+            return result;
         }
 
         private void ParseCertificate()
@@ -291,7 +305,7 @@ namespace AuthentiPatcher
 
         // __ Reading utils ___________________________________________________
 
-        private void SeekAbsolute(uint offset)
+        public void SeekAbsolute(long offset)
         {
             Reader.BaseStream.Seek(offset, SeekOrigin.Begin);
         }
