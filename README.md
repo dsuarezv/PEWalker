@@ -16,7 +16,7 @@ The original goal was to patch an exe file signed with authenticode and still ke
 
 Out of the box, the program can dump the contents of the PE headers. Invoke it with the exe file you want to analyze:
 
-    authentipatcher c:\windows\system32\calc.exe
+    authentipatcher print c:\windows\system32\calc.exe
 
 This will print all the fields it knows about in the console: 
 
@@ -26,7 +26,7 @@ This will print all the fields it knows about in the console:
 
 The tool can also append a payload at the end of the certificates area, if invoked with some more arguments. The signature of the file should still be valid after this. 
 
-    authentipatcher <inputfile> <payloadfile> <outputfile>
+    authentipatcher addauthpayload <inputfile> <payloadfile> <outputfile>
 
 There are some requirements for this to work: 
 
