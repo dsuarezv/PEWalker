@@ -37,6 +37,23 @@ It will modify the size of this section, both the length here and the size of th
 
 ![](screenshots/certdata.png)
 
+### Dumping parts of the file
+
+    dump command usage
+      authentipatch dump <format> <filename> <offset> [size]
+        format can be any of:
+          hex  00 4F 3B AB 00 44 01 0A  00 4F 3B AB 00 44 01 0A
+          sx   \x00\x4F\x3B\xAB\x00\x44\x01\x0A\x00\x4F\x3B\xAB\x00\x44\x01\x0A
+          zx   0x00,0x4F,0x3B,0xAB,0x00,0x44,0x01,0x0A,0x00,0x4F,0x3B,0xAB,0x00,0x44,0x01,0x0A
+        offset can be any of:
+          section name: .text    In this case, size can be used but is not required.
+          decimal value: 34563   Size required
+          hex value: 0x34A63     Size required
+    Samples:
+      authentipatch dump sx c:\windows\system32\calc.exe .text
+      authentipatch dump hex c:\windows\system32\calc.exe .text
+      authentipatch dump raw c:\windows\system32\calc.exe 307200 0x345
+
 
 ## Building
 
